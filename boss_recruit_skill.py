@@ -113,11 +113,10 @@ class BossRecruitSkill:
     def search_and_generate(self, job_req: Dict[str, Any]) -> Dict[str, Any]:
         readiness = self.prepare_execution()
         if readiness["status"] != "ready":
-            return {
-                "blocked": True,
-                "reason": readiness["status"],
-                "health_check": readiness,
-            }
+            return self._build_blocked_result(
+                reason=readiness["status"],
+                health_check=readiness,
+            )
 
         parsed_request = JobRequest.from_dict(job_req)
         self._validate_job_request(parsed_request)
@@ -127,23 +126,22 @@ class BossRecruitSkill:
         pdf_files = [self._generate_pdf(parsed_request, resume) for resume in matched]
         excel_file = self._generate_excel(matched)
 
-        return {
-            "job_request": parsed_request.__dict__,
-            "resumes": matched,
-            "pdf_files": [str(path) for path in pdf_files],
-            "excel_file": str(excel_file),
-            "data_source": self._data_source_label(),
-        }
+        return self._build_success_result(
+            job_request=parsed_request.__dict__,
+            resumes=matched,
+            pdf_files=[str(path) for path in pdf_files],
+            excel_file=str(excel_file),
+            data_source=self._data_source_label(),
+        )
 
     def search_and_generate_from_text(self, request_text: str) -> Dict[str, Any]:
         readiness = self.prepare_execution(symptom_text=request_text)
         if readiness["status"] != "ready":
-            return {
-                "blocked": True,
-                "reason": readiness["status"],
-                "request_text": request_text,
-                "health_check": readiness,
-            }
+            return self._build_blocked_result(
+                reason=readiness["status"],
+                health_check=readiness,
+                request_text=request_text,
+            )
 
         job_req = self.parse_job_request(request_text)
         result = self.search_and_generate(job_req)
@@ -220,11 +218,67 @@ class BossRecruitSkill:
 
     def prepare_execution(self, symptom_text: str = "") -> Dict[str, Any]:
         health = self.health_check(symptom_text=symptom_text)
+        return self._build_diagnostic_result(
+            status=health["status"],
+            ready=health["status"] == "ready",
+            next_actions=health["next_actions"],
+            health_check=health,
+        )
+
+    def _build_blocked_result(
+        self,
+        reason: str,
+        health_check: Dict[str, Any],
+        request_text: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        result = {
+            "schema_version": "1.0",
+            "result_type": "blocked",
+            "status": reason,
+            "blocked": True,
+            "reason": reason,
+            "next_actions": health_check.get("next_actions", []),
+            "health_check": health_check,
+        }
+        if request_text is not None:
+            result["request_text"] = request_text
+        return result
+
+    def _build_success_result(
+        self,
+        job_request: Dict[str, Any],
+        resumes: List[Dict[str, Any]],
+        pdf_files: List[str],
+        excel_file: str,
+        data_source: str,
+    ) -> Dict[str, Any]:
         return {
-            "status": health["status"],
-            "ready": health["status"] == "ready",
-            "next_actions": health["next_actions"],
-            "health_check": health,
+            "schema_version": "1.0",
+            "result_type": "success",
+            "status": "ready",
+            "blocked": False,
+            "job_request": job_request,
+            "resumes": resumes,
+            "pdf_files": pdf_files,
+            "excel_file": excel_file,
+            "data_source": data_source,
+        }
+
+    def _build_diagnostic_result(
+        self,
+        status: str,
+        ready: bool,
+        next_actions: List[str],
+        health_check: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        return {
+            "schema_version": "1.0",
+            "result_type": "diagnostic",
+            "status": status,
+            "ready": ready,
+            "blocked": not ready,
+            "next_actions": next_actions,
+            "health_check": health_check,
         }
 
     def build_boss_mcp_config(self, cookie: str, bst: str) -> str:

@@ -108,6 +108,26 @@ Preferred usage:
 - When drafting outreach or application messages, keep them brief, specific, and aligned with the role requirements.
 - When file generation succeeds, return the generated file paths explicitly.
 
+## Result schema
+
+- All Python entry points return a stable top-level schema with:
+  - `schema_version`
+  - `result_type`
+  - `status`
+- Success results use:
+  - `result_type: success`
+  - `blocked: false`
+- Blocked results use:
+  - `result_type: blocked`
+  - `blocked: true`
+  - `reason`
+  - `next_actions`
+- Diagnostic results use:
+  - `result_type: diagnostic`
+  - `ready`
+  - `blocked`
+  - `next_actions`
+
 ## Common tasks
 
 ### Search and shortlist jobs
