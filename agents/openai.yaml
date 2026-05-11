@@ -1,0 +1,13 @@
+interface:
+  display_name: "Boss Recruit Skill"
+  short_description: "Search, analyze, and compare Boss Zhipin roles with MCP-backed workflows."
+  default_prompt: "Use $boss-recruit-skill to search Boss Zhipin roles, compare them, and summarize the best matches."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "boss-zhipin"
+      description: "Boss Zhipin MCP server used for live recruiting and job-search data."
+
+policy:
+  allow_implicit_invocation: true
