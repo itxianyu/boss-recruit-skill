@@ -14,6 +14,21 @@ Recommended flow:
 4. Tell the user to restart the Codex session.
 5. After restart, run `codex mcp list` and confirm the server is `enabled`.
 
+Repeated page opening or maintenance redirect:
+
+- If the Boss page keeps opening repeatedly, treat it as MCP failure, not as a normal login flow.
+- A screenshot like "当前页面已停止维护，将自动跳转到新页面" is a bad sign. It usually means the third-party MCP landed on an invalid, deprecated, or blocked route.
+- Stop retrying.
+- Temporarily disable the MCP by running:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\disable_boss_mcp.ps1
+```
+
+- Refresh `COOKIE` and `BST`.
+- Register the MCP again with `register_boss_mcp.ps1`.
+- Restart Codex before testing again.
+
 Python bootstrap example:
 
 ```powershell

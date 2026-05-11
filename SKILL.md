@@ -81,6 +81,21 @@ Preferred usage:
 4. Tell the user to restart the Codex session so the new MCP server can be loaded.
 5. After restart, verify the MCP server state with `codex mcp list`.
 
+## MCP loop handling
+
+1. If Boss pages keep opening repeatedly, stop treating that as a normal retry case.
+2. Treat maintenance pages, redirect loops, and repeated browser launches as MCP failure symptoms.
+3. Temporarily disable the MCP entry by using [scripts/disable_boss_mcp.ps1](scripts/disable_boss_mcp.ps1).
+4. Ask the user to refresh `COOKIE` and `BST`, then register the MCP again.
+5. Until the MCP is stable, continue with offline analysis instead of reopening Boss pages.
+
+## Known risks
+
+- `mcp-boss-zp` is a third-party MCP wrapper, so browser behavior can change without notice.
+- A valid Boss account does not guarantee MCP stability. The MCP may still hit deprecated pages, redirect loops, or blocked browser flows.
+- `COOKIE` and `BST` can expire independently of the visible browser login state.
+- When the MCP is unstable, prefer disabling it and falling back to offline analysis instead of repeatedly reopening Boss pages.
+
 ## Output rules
 
 - Present shortlists as compact tables or bullet lists with one line per item.
@@ -120,6 +135,7 @@ Preferred usage:
 - If MCP calls fail, state whether the issue is authentication, server availability, or missing query constraints.
 - If Python is missing locally, help the user install it instead of stopping at an import or command-not-found error.
 - If `boss-zhipin` is not registered locally, help the user complete registration instead of stopping at an error.
+- If `boss-zhipin` keeps opening browser pages or lands on a maintenance page, stop retrying, disable the MCP temporarily, and ask the user to refresh `COOKIE` and `BST`.
 - Offer the fastest fallback path: refine the query, fix MCP setup, or switch to offline analysis.
 - If the Python workflow is used without live Boss data, state that the output is based on the provided or fallback resume dataset.
 

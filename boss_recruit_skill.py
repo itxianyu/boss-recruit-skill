@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -165,6 +166,41 @@ class BossRecruitSkill:
             "setup_script": str(Path(__file__).resolve().parent / "scripts" / "register_boss_mcp.ps1"),
         }
 
+    def health_check(self, symptom_text: str = "") -> Dict[str, Any]:
+        python_available = shutil.which("python") is not None or shutil.which("py") is not None
+        registration = self.detect_boss_mcp_registration()
+        issue_diagnosis = self.diagnose_boss_mcp_issue(symptom_text) if symptom_text else None
+
+        status = "ready"
+        next_actions: List[str] = []
+
+        if not python_available:
+            status = "python_missing"
+            next_actions.append("install Python and requirements by using scripts/bootstrap_python_env.ps1")
+
+        if not registration["boss_zhipin_registered"]:
+            if status == "ready":
+                status = "mcp_missing"
+            next_actions.append("register boss-zhipin MCP by using scripts/register_boss_mcp.ps1")
+
+        if issue_diagnosis and issue_diagnosis.get("issue_type") == "boss_mcp_loop_or_redirect":
+            status = "mcp_unstable"
+            next_actions.extend(issue_diagnosis["recommended_actions"])
+
+        if not next_actions:
+            next_actions.append("proceed with the recruiting workflow")
+
+        return {
+            "status": status,
+            "python_available": python_available,
+            "boss_mcp_registered": registration["boss_zhipin_registered"],
+            "config_path": registration["config_path"],
+            "setup_script": registration["setup_script"],
+            "disable_script": str(Path(__file__).resolve().parent / "scripts" / "disable_boss_mcp.ps1"),
+            "next_actions": next_actions,
+            "issue_diagnosis": issue_diagnosis,
+        }
+
     def build_boss_mcp_config(self, cookie: str, bst: str) -> str:
         return (
             "[mcp_servers.boss-zhipin]\n"
@@ -174,6 +210,35 @@ class BossRecruitSkill:
             f'BST = "{bst}"\n'
             f'COOKIE = "{cookie}"\n'
         )
+
+    def diagnose_boss_mcp_issue(self, symptom_text: str) -> Dict[str, Any]:
+        text = symptom_text.lower()
+        repeated_open = any(token in text for token in ["不停打开", "重复打开", "反复打开", "keep opening", "opens repeatedly"])
+        maintenance = any(token in text for token in ["停止维护", "自动跳转", "maintenance", "redirect"])
+
+        if repeated_open or maintenance:
+            return {
+                "issue_type": "boss_mcp_loop_or_redirect",
+                "likely_cause": "third_party_mcp_browser_flow_failed_or_deprecated_route",
+                "recommended_actions": [
+                    "stop retrying the MCP",
+                    "disable boss-zhipin MCP temporarily",
+                    "refresh COOKIE and BST",
+                    "re-register the MCP",
+                    "restart Codex before testing again",
+                    "use offline mode until MCP is stable",
+                ],
+                "disable_script": str(Path(__file__).resolve().parent / "scripts" / "disable_boss_mcp.ps1"),
+            }
+
+        return {
+            "issue_type": "unknown",
+            "recommended_actions": [
+                "check MCP registration",
+                "check COOKIE and BST",
+                "review current MCP logs or terminal output",
+            ],
+        }
 
     def _validate_job_request(self, job_req: JobRequest) -> None:
         if not job_req.title:
