@@ -1,8 +1,25 @@
-# Boss直聘 MCP 接入
+# Boss Zhipin MCP Setup
 
-使用这个 skill 之前，先确认本机已经注册并启用 `boss-zhipin` MCP server。
+Before using this skill for live Boss Zhipin data, confirm that the local machine has registered and enabled the `boss-zhipin` MCP server.
 
-当前约定配置：
+If the machine does not have `boss-zhipin` registered, do not stop at a missing-MCP error. Help the user register and enable it.
+
+Recommended flow:
+
+1. Ask the user for `COOKIE` and `BST`.
+2. Run `scripts/register_boss_mcp.ps1` to write the config.
+3. Tell the user to restart the Codex session.
+4. After restart, run `codex mcp list` and confirm the server is `enabled`.
+
+Script example:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\register_boss_mcp.ps1 `
+  -Cookie "<BOSS_COOKIE>" `
+  -Bst "<BOSS_BST>"
+```
+
+Expected config block:
 
 ```toml
 [mcp_servers.boss-zhipin]
@@ -14,30 +31,30 @@ BST = "__FILL_BOSS_BST__"
 COOKIE = "__FILL_BOSS_COOKIE__"
 ```
 
-必填环境变量：
+Required values:
 
-- `COOKIE`：Boss直聘网页端登录后的整段 Cookie
-- `BST`：Boss直聘请求中使用的 `bst` 值
+- `COOKIE`: Full Boss Zhipin web cookie after login
+- `BST`: `bst` value used in Boss requests
 
-获取方式：
+How to obtain them:
 
-1. 在浏览器登录 Boss直聘网页端。
-2. 打开开发者工具的 Network。
-3. 刷新页面或执行一次职位搜索。
-4. 找到发往 Boss 相关接口的请求。
-5. 从请求头复制 `Cookie`。
-6. 从请求参数或请求头中找到 `bst`。
+1. Log in to the Boss Zhipin website in a browser.
+2. Open Developer Tools and go to Network.
+3. Refresh the page or run a job search.
+4. Find a request to a Boss endpoint.
+5. Copy the `Cookie` header.
+6. Find the `bst` value in request headers or parameters.
 
-完成后：
+Manual fallback:
 
-1. 编辑 `C:\Users\Administrator\.codex\config.toml`。
-2. 替换占位符为真实值。
-3. 重启 Codex 会话。
-4. 运行 `codex mcp list` 确认服务仍为 `enabled`。
+1. Edit `C:\Users\Administrator\.codex\config.toml`.
+2. Add or update the config block above.
+3. Restart the Codex session.
+4. Run `codex mcp list`.
 
-如果 MCP 未连通，这个 skill 仍可用于：
+If live MCP access is still unavailable, the skill can still help with:
 
-- 岗位 JD 分析
-- 简历与岗位匹配建议
-- 招呼语和跟进消息撰写
-- 招聘筛选规则设计
+- JD analysis
+- Resume-to-job matching suggestions
+- Outreach and follow-up message drafting
+- Recruiting screening rubric design

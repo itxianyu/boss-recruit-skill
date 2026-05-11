@@ -100,12 +100,14 @@ class BossRecruitSkill:
         output_dir: str = "artifacts",
         resume_data_path: Optional[str] = None,
         embedding_model_name: str = "all-MiniLM-L6-v2",
+        codex_config_path: Optional[str] = None,
     ) -> None:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.resume_data_path = Path(resume_data_path) if resume_data_path else None
         self.embedding_model_name = embedding_model_name
         self._embedding_model = None
+        self.codex_config_path = Path(codex_config_path) if codex_config_path else Path.home() / ".codex" / "config.toml"
 
     def search_and_generate(self, job_req: Dict[str, Any]) -> Dict[str, Any]:
         parsed_request = JobRequest.from_dict(job_req)
@@ -147,6 +149,31 @@ class BossRecruitSkill:
             "city": city or "",
             "education": education or "",
         }
+
+    def detect_boss_mcp_registration(self) -> Dict[str, Any]:
+        config_exists = self.codex_config_path.exists()
+        has_registration = False
+
+        if config_exists:
+            content = self.codex_config_path.read_text(encoding="utf-8", errors="ignore")
+            has_registration = "[mcp_servers.boss-zhipin]" in content
+
+        return {
+            "config_path": str(self.codex_config_path),
+            "config_exists": config_exists,
+            "boss_zhipin_registered": has_registration,
+            "setup_script": str(Path(__file__).resolve().parent / "scripts" / "register_boss_mcp.ps1"),
+        }
+
+    def build_boss_mcp_config(self, cookie: str, bst: str) -> str:
+        return (
+            "[mcp_servers.boss-zhipin]\n"
+            'command = "npx"\n'
+            'args = ["-y", "mcp-boss-zp"]\n\n'
+            "[mcp_servers.boss-zhipin.env]\n"
+            f'BST = "{bst}"\n'
+            f'COOKIE = "{cookie}"\n'
+        )
 
     def _validate_job_request(self, job_req: JobRequest) -> None:
         if not job_req.title:
