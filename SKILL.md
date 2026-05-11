@@ -1,17 +1,35 @@
 ---
 name: boss-recruit-skill
-description: Use when Codex needs to work with Boss Zhipin hiring or job-search workflows through the `boss-zhipin` MCP server, including searching positions, filtering results, comparing jobs, extracting salary and requirement signals, drafting outreach or follow-up messages, and organizing candidate or opportunity review. Use for requests involving Boss直聘, Boss Zhipin, 招聘, 岗位筛选, 职位分析, 投递建议, or MCP-based recruiting automation.
+description: Use when Codex, Claude, DeepSeek, or another agent needs a Boss Zhipin recruiting skill that can be triggered from natural-language hiring requests and then run a local Python workflow for resume collection, matching, and PDF or Excel output. Use for Boss直聘, Boss Zhipin, 招聘, 岗位筛选, 简历匹配, 职位分析, 投递建议, or MCP-based recruiting automation.
 ---
 
 # Boss Recruit Skill
 
-Use the `boss-zhipin` MCP server as the primary data source when the user asks for live Boss Zhipin information.
+Use the `boss-zhipin` MCP server as the primary live data source when available. Use the bundled Python module when the agent needs to produce structured results or files.
 
 ## Preconditions
 
 - Confirm the `boss-zhipin` MCP server is enabled before relying on live data.
 - If the MCP server is unavailable, say so clearly and continue with offline help such as resume targeting, JD analysis, message drafting, or screening rubric design.
 - Read [references/boss-mcp-setup.md](references/boss-mcp-setup.md) when setup or authentication is incomplete.
+- Use [boss_recruit_skill.py](boss_recruit_skill.py) when the agent needs to generate ranked matches, PDF summaries, or an Excel export.
+
+## Python entry points
+
+- `BossRecruitSkill.search_and_generate(job_req)`
+- `BossRecruitSkill.search_and_generate_from_text(request_text)`
+
+Preferred usage:
+
+1. Extract hiring constraints from the user's natural-language request.
+2. Build a `job_req` object with:
+   - `title`
+   - `skills`
+   - `experience`
+   - `city`
+   - `education`
+3. Call `search_and_generate(job_req)` when the fields are already known.
+4. Call `search_and_generate_from_text(request_text)` when only a raw request is available.
 
 ## Workflow
 
@@ -46,6 +64,7 @@ Use the `boss-zhipin` MCP server as the primary data source when the user asks f
 - Call out unknown fields instead of guessing.
 - When ranking jobs or candidates, state the ranking criteria first.
 - When drafting outreach or application messages, keep them brief, specific, and aligned with the role requirements.
+- When file generation succeeds, return the generated file paths explicitly.
 
 ## Common tasks
 
@@ -76,6 +95,7 @@ Use the `boss-zhipin` MCP server as the primary data source when the user asks f
 
 - If MCP calls fail, state whether the issue is authentication, server availability, or missing query constraints.
 - Offer the fastest fallback path: refine the query, fix MCP setup, or switch to offline analysis.
+- If the Python workflow is used without live Boss data, state that the output is based on the provided or fallback resume dataset.
 
 ## Reference
 
