@@ -20,20 +20,23 @@ Use the `boss-zhipin` MCP server as the primary live data source when available.
 
 ## Python entry points
 
+- `BossRecruitSkill.prepare_execution(symptom_text="")`
 - `BossRecruitSkill.search_and_generate(job_req)`
 - `BossRecruitSkill.search_and_generate_from_text(request_text)`
 
 Preferred usage:
 
-1. Extract hiring constraints from the user's natural-language request.
-2. Build a `job_req` object with:
+1. Run `prepare_execution()` first.
+2. If the returned status is not `ready`, follow the returned next actions instead of forcing the workflow to continue.
+3. Extract hiring constraints from the user's natural-language request.
+4. Build a `job_req` object with:
    - `title`
    - `skills`
    - `experience`
    - `city`
    - `education`
-3. Call `search_and_generate(job_req)` when the fields are already known.
-4. Call `search_and_generate_from_text(request_text)` when only a raw request is available.
+5. Call `search_and_generate(job_req)` when the fields are already known.
+6. Call `search_and_generate_from_text(request_text)` when only a raw request is available.
 
 ## Workflow
 

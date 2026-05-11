@@ -111,6 +111,14 @@ class BossRecruitSkill:
         self.codex_config_path = Path(codex_config_path) if codex_config_path else Path.home() / ".codex" / "config.toml"
 
     def search_and_generate(self, job_req: Dict[str, Any]) -> Dict[str, Any]:
+        readiness = self.prepare_execution()
+        if readiness["status"] != "ready":
+            return {
+                "blocked": True,
+                "reason": readiness["status"],
+                "health_check": readiness,
+            }
+
         parsed_request = JobRequest.from_dict(job_req)
         self._validate_job_request(parsed_request)
 
@@ -128,6 +136,15 @@ class BossRecruitSkill:
         }
 
     def search_and_generate_from_text(self, request_text: str) -> Dict[str, Any]:
+        readiness = self.prepare_execution(symptom_text=request_text)
+        if readiness["status"] != "ready":
+            return {
+                "blocked": True,
+                "reason": readiness["status"],
+                "request_text": request_text,
+                "health_check": readiness,
+            }
+
         job_req = self.parse_job_request(request_text)
         result = self.search_and_generate(job_req)
         result["request_text"] = request_text
@@ -199,6 +216,15 @@ class BossRecruitSkill:
             "disable_script": str(Path(__file__).resolve().parent / "scripts" / "disable_boss_mcp.ps1"),
             "next_actions": next_actions,
             "issue_diagnosis": issue_diagnosis,
+        }
+
+    def prepare_execution(self, symptom_text: str = "") -> Dict[str, Any]:
+        health = self.health_check(symptom_text=symptom_text)
+        return {
+            "status": health["status"],
+            "ready": health["status"] == "ready",
+            "next_actions": health["next_actions"],
+            "health_check": health,
         }
 
     def build_boss_mcp_config(self, cookie: str, bst: str) -> str:
