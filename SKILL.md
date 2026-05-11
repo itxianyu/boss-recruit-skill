@@ -9,11 +9,13 @@ Use the `boss-zhipin` MCP server as the primary live data source when available.
 
 ## Preconditions
 
+- If Python is not installed on the local machine, help the user install Python before attempting MCP setup or local skill execution.
 - Confirm the `boss-zhipin` MCP server is enabled before relying on live data.
 - If the local machine has not registered `boss-zhipin`, help the user register and enable it before continuing.
 - If the MCP server is unavailable, say so clearly and continue with offline help such as resume targeting, JD analysis, message drafting, or screening rubric design.
 - Read [references/boss-mcp-setup.md](references/boss-mcp-setup.md) when setup or authentication is incomplete.
 - Use [boss_recruit_skill.py](boss_recruit_skill.py) when the agent needs to generate ranked matches, PDF summaries, or an Excel export.
+- Use [scripts/bootstrap_python_env.ps1](scripts/bootstrap_python_env.ps1) when Python or required packages are missing.
 - Use [scripts/register_boss_mcp.ps1](scripts/register_boss_mcp.ps1) to write the required `boss-zhipin` MCP configuration into the local Codex config file.
 
 ## Python entry points
@@ -58,6 +60,16 @@ Preferred usage:
    - key requirements
    - notable risks or ambiguities
 5. Synthesize recommendations instead of dumping raw records.
+
+## Python setup workflow
+
+1. Check whether `python` or `py` is available locally.
+2. If neither is available, help the user install Python first.
+3. Run [scripts/bootstrap_python_env.ps1](scripts/bootstrap_python_env.ps1) from the skill root to:
+   - install Python with `winget` when needed
+   - confirm `pip` is available
+   - install packages from `requirements.txt`
+4. Only continue with MCP registration or skill execution after the Python environment is ready.
 
 ## MCP setup workflow
 
@@ -106,6 +118,7 @@ Preferred usage:
 ## Failure handling
 
 - If MCP calls fail, state whether the issue is authentication, server availability, or missing query constraints.
+- If Python is missing locally, help the user install it instead of stopping at an import or command-not-found error.
 - If `boss-zhipin` is not registered locally, help the user complete registration instead of stopping at an error.
 - Offer the fastest fallback path: refine the query, fix MCP setup, or switch to offline analysis.
 - If the Python workflow is used without live Boss data, state that the output is based on the provided or fallback resume dataset.

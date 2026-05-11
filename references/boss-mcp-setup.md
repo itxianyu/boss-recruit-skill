@@ -2,14 +2,23 @@
 
 Before using this skill for live Boss Zhipin data, confirm that the local machine has registered and enabled the `boss-zhipin` MCP server.
 
+Also confirm that the machine has a usable Python environment. If Python is missing, install it first by using `scripts/bootstrap_python_env.ps1`.
+
 If the machine does not have `boss-zhipin` registered, do not stop at a missing-MCP error. Help the user register and enable it.
 
 Recommended flow:
 
-1. Ask the user for `COOKIE` and `BST`.
-2. Run `scripts/register_boss_mcp.ps1` to write the config.
-3. Tell the user to restart the Codex session.
-4. After restart, run `codex mcp list` and confirm the server is `enabled`.
+1. Ensure Python is installed and install `requirements.txt` dependencies.
+2. Ask the user for `COOKIE` and `BST`.
+3. Run `scripts/register_boss_mcp.ps1` to write the config.
+4. Tell the user to restart the Codex session.
+5. After restart, run `codex mcp list` and confirm the server is `enabled`.
+
+Python bootstrap example:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap_python_env.ps1
+```
 
 Script example:
 
