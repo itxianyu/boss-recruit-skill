@@ -23,6 +23,7 @@ Use the `boss-zhipin` MCP server as the primary live data source when available.
 - `BossRecruitSkill.prepare_execution(symptom_text="")`
 - `BossRecruitSkill.search_and_generate(job_req)`
 - `BossRecruitSkill.search_and_generate_from_text(request_text)`
+- Example runner: [examples/run_skill.py](examples/run_skill.py)
 
 Preferred usage:
 
@@ -37,6 +38,17 @@ Preferred usage:
    - `education`
 5. Call `search_and_generate(job_req)` when the fields are already known.
 6. Call `search_and_generate_from_text(request_text)` when only a raw request is available.
+
+Minimal example:
+
+```python
+from boss_recruit_skill import BossRecruitSkill
+
+skill = BossRecruitSkill()
+health = skill.prepare_execution()
+if health["ready"]:
+    result = skill.search_and_generate_from_text("帮我找上海 Python 后端开发，要求 3 年经验，本科，生成 PDF 和 Excel")
+```
 
 ## Workflow
 
