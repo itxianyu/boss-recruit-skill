@@ -7,6 +7,8 @@ description: Use when Codex, Claude, DeepSeek, or another agent needs a Boss Zhi
 
 Use the `boss-zhipin` MCP server as the primary live data source when available. Use the bundled Python module when the agent needs to produce structured results or files.
 
+This skill supports filtering by work address, age, work experience, salary range, and explicit job requirements in addition to the basic role, city, education, and skill filters.
+
 ## Preconditions
 
 - If Python is not installed on the local machine, help the user install Python before attempting MCP setup or local skill execution.
@@ -36,6 +38,11 @@ Preferred usage:
    - `experience`
    - `city`
    - `education`
+   - `work_address`
+   - `max_age`
+   - `salary_min_k`
+   - `salary_max_k`
+   - `job_requirements`
 5. Call `search_and_generate(job_req)` when the fields are already known.
 6. Call `search_and_generate_from_text(request_text)` when only a raw request is available.
 
@@ -47,7 +54,7 @@ from boss_recruit_skill import BossRecruitSkill
 skill = BossRecruitSkill()
 health = skill.prepare_execution()
 if health["ready"]:
-    result = skill.search_and_generate_from_text("帮我找上海 Python 后端开发，要求 3 年经验，本科，生成 PDF 和 Excel")
+    result = skill.search_and_generate_from_text("帮我找上海 Python 后端开发，要求 3 年经验，30 岁以下，本科，25-30k，上班地址上海浦东，岗位要求 Python、Django、MySQL，生成 PDF 和 Excel")
 ```
 
 ## Workflow
@@ -59,9 +66,12 @@ if health["ready"]:
 2. Gather constraints before broad searches:
    - keyword or target role
    - city or remote preference
+   - work address
+   - age
    - salary range
    - experience level
    - industry, company stage, or company size
+   - explicit job requirements
    - must-have and reject conditions
 3. Run the narrowest MCP queries that can answer the request.
 4. Normalize results into comparable fields:
